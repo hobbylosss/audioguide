@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Audio-Guide Agnes Bernauer · Straubing</title>
+<style>
+:root{--bg:#f6f1e7;--card:#fffdf8;--ink:#2b2118;--mut:#6f6254;--acc:#8c2f39;--line:#d9cdb8;--water:#cfe0e6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1713;--card:#272019;--ink:#f1e8d9;--mut:#b3a38e;--acc:#e0707b;--line:#41372c;--water:#26363d}}
+:root[data-theme="dark"]{--bg:#1c1713;--card:#272019;--ink:#f1e8d9;--mut:#b3a38e;--acc:#e0707b;--line:#41372c;--water:#26363d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.6 Georgia,"Times New Roman",serif}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar a{color:var(--acc);text-decoration:none;font:600 15px sans-serif;padding:8px 4px}
+.lang{display:flex;border:1px solid var(--acc);border-radius:999px;overflow:hidden}
+.lang button{all:unset;cursor:pointer;font:700 14px sans-serif;padding:8px 14px;color:var(--acc)}
+.lang button.on{background:var(--acc);color:#fff}
+main{max-width:560px;margin:0 auto;padding:16px 16px 36px}
+h1{font-size:1.6rem;line-height:1.2;margin:.2em 0 .1em}
+h2{font-size:1.45rem;line-height:1.25;margin:.2em 0}
+.sub{color:var(--mut);font-style:italic;margin:0 0 1em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+svg{width:100%;height:auto;display:block;border-radius:12px;background:var(--bg);touch-action:none}
+.zoom{position:absolute;right:26px;top:26px;display:flex;flex-direction:column;gap:8px}
+.zoom button{all:unset;cursor:pointer;width:44px;height:44px;border-radius:50%;background:var(--card);color:var(--acc);border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.25);font:700 24px/44px sans-serif;text-align:center}
+.stop{cursor:pointer;outline:none}
+.stop circle{fill:var(--acc);stroke:#fff;stroke-width:3}
+.stop text.n{fill:#fff;font:700 16px sans-serif;text-anchor:middle}
+.stop text.l{fill:var(--ink);font:600 14px sans-serif;paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+.list a{display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line);color:inherit;text-decoration:none}
+.list a:first-child{border-top:0}
+.badge{flex:none;width:38px;height:38px;border-radius:50%;background:var(--acc);color:#fff;font:700 16px sans-serif;display:grid;place-items:center}
+.list small{display:block;color:var(--mut);font-size:.85em}
+.hero{height:170px;border-radius:12px;background:linear-gradient(135deg,var(--acc),#c9a35b) center/cover;display:grid;place-items:center;color:#fff;font:600 14px sans-serif;margin-bottom:12px}
+.play{display:flex;align-items:center;gap:12px}
+.play button{font:700 17px sans-serif;background:var(--acc);color:#fff;border:0;border-radius:999px;padding:14px 24px;cursor:pointer}
+.note{font:13px/1.4 sans-serif;color:var(--mut)}
+.next{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:72px;margin-top:20px;padding:14px 20px;border-radius:16px;background:var(--acc);color:#fff;text-decoration:none;font:700 20px/1.25 sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.next small{display:block;font:500 13px sans-serif;opacity:.85}
+.next b{font-size:30px}
+.prev{display:inline-block;margin-top:16px;color:var(--acc);text-decoration:none;font:600 15px sans-serif;padding:8px 0}
+#map{height:60vh;min-height:320px;border-radius:12px;z-index:0}
+.zoom{top:18px;right:18px;z-index:1000}
+.pin{position:relative;width:38px;height:38px;border-radius:50%;background:#8c2f39;color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);font:700 16px/32px sans-serif;text-align:center}
+.plabel{position:absolute;left:44px;top:2px;white-space:nowrap;font:600 14px/1.3 sans-serif;color:#2b2118;background:rgba(255,253,248,.94);padding:2px 8px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);text-align:left}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+</head>
+<body>
+<div class="bar"><a id="home" href="#/"></a><div class="lang" id="lang"></div></div>
+<main id="app"></main>
+<script>
+/* ===== KONFIGURATION ===== */
+/* Karte (OpenStreetMap): center = [Breite, Länge], zoom = Start-Zoom.
+   Stationen: lat/lng = Koordinaten. Auf openstreetmap.org: Rechtsklick auf den Ort -> Koordinaten/Adresse anzeigen.
+   ACHTUNG: Die Koordinaten unten sind nur grob geschätzt und müssen geprüft werden!
+   ROUTE (optional): Liste von [lat,lng]-Punkten, damit die Linie Straßen folgt; leer = Linie direkt durch alle Stationen. */
+var MAP={center:[48.8835,12.5790],zoom:15};
+var ROUTE=[];
+var LANGS=["de","en"];
+var UI={
+ de:{title:"Auf den Spuren der Agnes Bernauer",sub:"Ein Audio-Rundgang durch Straubing",home:"← Übersicht",map:"Tippe auf einen Punkt, um die Station zu öffnen.",play:"▶ Anhören",stopb:"❚❚ Stopp",demo:"Demo-Stimme des Geräts (später: echte Aufnahme)",aud:"Audio-Datei",next:"Weiter zu Station",nextS:"Nächste Station",done:"Zur Übersicht",doneS:"Rundgang beendet",prev:"← Vorherige Station",photo:"Platz für Foto der Station",water:"Donau",foot:"Prototyp · Texte und Karte sind Platzhalter."},
+ en:{title:"In the Footsteps of Agnes Bernauer",sub:"An audio walk through Straubing",home:"← Overview",map:"Tap a point to open the stop.",play:"▶ Listen",stopb:"❚❚ Stop",demo:"Device demo voice (later: real recording)",aud:"Audio file",next:"Continue to stop",nextS:"Next stop",done:"Back to overview",doneS:"Walk completed",prev:"← Previous stop",photo:"Space for station photo",water:"Danube",foot:"Prototype · texts and map are placeholders."}};
+/* Stationen: lat/lng = Position auf der Karte, audio = Dateiname pro Sprache (leer = Demo-Stimme), img = Foto (optional) */
+var STATIONS=[
+{id:1,lat:48.8836,lng:12.5775,img:"",
+ de:{title:"Das Herzogsschloss",sub:"Hier beginnt die Geschichte",audio:"",text:["Willkommen in Straubing. Hier, im Herzogsschloss, residierte im 15. Jahrhundert Herzog Ernst von Bayern-München.","Sein Sohn Albrecht verliebte sich in Agnes Bernauer, die Tochter eines Augsburger Baders. Die Verbindung galt als nicht standesgemäß und wurde zum politischen Konflikt.","Platzhaltertext: Hier folgt später der echte, historisch geprüfte Text."]},
+ en:{title:"The Ducal Castle",sub:"Where the story begins",audio:"",text:["Welcome to Straubing. In the 15th century, Duke Ernst of Bavaria-Munich resided here in the ducal castle.","His son Albrecht fell in love with Agnes Bernauer, the daughter of an Augsburg bathhouse keeper. The union was seen as unsuitable and became a political conflict.","Placeholder text: the real, historically verified text will follow here."]}},
+{id:2,lat:48.8862,lng:12.5927,img:"",
+ de:{title:"Die Agnes-Bernauer-Kapelle",sub:"Der Ort der Erinnerung",audio:"",text:["Im Jahr 1435 wurde Agnes Bernauer in der Donau ertränkt. Ihr Tod machte sie zur Legende.","Herzog Albrecht ließ später eine Kapelle stiften, die an sie erinnert. Bis heute lebt ihre Geschichte in Dichtung und Festspielen weiter.","Platzhaltertext: Hier folgt später der echte, historisch geprüfte Text."]},
+ en:{title:"The Agnes Bernauer Chapel",sub:"A place of remembrance",audio:"",text:["In 1435, Agnes Bernauer was drowned in the Danube. Her death turned her into a legend.","Duke Albrecht later endowed a chapel in her memory. Her story lives on in literature and festivals to this day.","Placeholder text: the real, historically verified text will follow here."]}}
+];
+/* ===== ENDE KONFIGURATION ===== */
+
+var app=document.getElementById("app"),speaking=false,audioEl=null,lang=getLang();
+function getLang(){var l=null;try{l=localStorage.getItem("lang")}catch(e){}
+ if(LANGS.indexOf(l)<0){l=(navigator.language||"de").slice(0,2);if(LANGS.indexOf(l)<0)l="de"}return l}
+function setLang(l){lang=l;try{localStorage.setItem("lang",l)}catch(e){}route()}
+function stop(){try{speechSynthesis.cancel()}catch(e){}if(audioEl){audioEl.pause();audioEl=null}speaking=false}
+function chrome(){var t=UI[lang];document.documentElement.lang=lang;
+ document.getElementById("home").textContent=location.hash.indexOf("station")>0?t.home:"";
+ document.getElementById("lang").innerHTML=LANGS.map(function(l){return '<button type="button" class="'+(l==lang?"on":"")+'" onclick="setLang(\''+l+'\')">'+l.toUpperCase()+'</button>'}).join("")}
+var map=null,locOn=false,locMarker=null,firstFix=true;
+function overview(){
+ stop();var t=UI[lang];
+ var list=STATIONS.map(function(s){return '<a href="#/station/'+s.id+'"><span class="badge">'+s.id+'</span><span>'+s[lang].title+'<small>'+s[lang].sub+'</small></span></a>'}).join("");
+ app.innerHTML='<h1>'+t.title+'</h1><p class="sub">'+t.sub+'</p><div class="card" style="position:relative;padding:8px"><div id="map"></div><div class="zoom"><button type="button" id="loc" aria-label="Standort">\u25ce</button></div><p class="note">'+t.map+'</p></div><div class="card list">'+list+'</div><p class="note">'+t.foot+'</p>';
+ initMap();
+}
+function initMap(){
+ if(map){map.remove();map=null}
+ locOn=false;locMarker=null;firstFix=true;
+ map=L.map("map").setView(MAP.center,MAP.zoom);
+ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende'}).addTo(map);
+ var pts=STATIONS.map(function(s){return [s.lat,s.lng]});
+ L.polyline(ROUTE.length?ROUTE:pts,{color:"#8c2f39",weight:4,dashArray:"2 9",lineCap:"round"}).addTo(map);
+ STATIONS.forEach(function(s){
+  L.marker([s.lat,s.lng],{icon:L.divIcon({className:"",html:'<div class="pin">'+s.id+'<span class="plabel">'+s[lang].title+'</span></div>',iconSize:[38,38],iconAnchor:[19,19]}),title:s[lang].title})
+   .addTo(map).on("click",function(){location.hash="#/station/"+s.id});
+ });
+ map.fitBounds(pts,{padding:[60,60],maxZoom:17});
+ map.on("locationfound",function(e){
+  if(locMarker)locMarker.setLatLng(e.latlng);
+  else locMarker=L.circleMarker(e.latlng,{radius:9,color:"#fff",weight:3,fillColor:"#2a7de1",fillOpacity:1}).addTo(map);
+  if(firstFix){map.setView(e.latlng,17);firstFix=false}
+ });
+ document.getElementById("loc").onclick=function(){
+  if(locOn){map.stopLocate();if(locMarker){map.removeLayer(locMarker);locMarker=null}locOn=false;return}
+  locOn=true;firstFix=true;map.locate({watch:true,enableHighAccuracy:true,setView:false});
+ };
+}
+function station(id){
+ stop();var t=UI[lang];
+ var i=STATIONS.findIndex(function(x){return x.id==id});if(i<0)return overview();
+ var s=STATIONS[i],c=s[lang],nx=STATIONS[i+1],pv=STATIONS[i-1];
+ var hero=s.img?'<div class="hero" style="background-image:url(\''+s.img+'\')"></div>':'<div class="hero">'+t.photo+'</div>';
+ var nextBtn=nx?'<a class="next" href="#/station/'+nx.id+'"><span><small>'+t.nextS+'</small>'+t.next+' '+nx.id+': '+nx[lang].title+'</span><b>→</b></a>':'<a class="next" href="#/"><span><small>'+t.doneS+'</small>'+t.done+'</span><b>⌂</b></a>';
+ app.innerHTML='<h2>'+c.title+'</h2><p class="sub">'+c.sub+'</p>'+hero+
+ '<div class="card play"><button id="pb" type="button">'+t.play+'</button><span class="note">'+(c.audio?t.aud:t.demo)+'</span></div>'+
+ '<div class="card">'+c.text.map(function(p){return '<p>'+p+'</p>'}).join("")+'</div>'+nextBtn+(pv?'<a class="prev" href="#/station/'+pv.id+'">'+t.prev+'</a>':'');
+ var b=document.getElementById("pb");
+ b.onclick=function(){
+  if(speaking){stop();b.textContent=t.play;return}
+  speaking=true;b.textContent=t.stopb;
+  var done=function(){speaking=false;b.textContent=t.play};
+  if(c.audio){audioEl=new Audio(c.audio);audioEl.onended=done;audioEl.play()}
+  else try{var u=new SpeechSynthesisUtterance(c.text.join(" "));u.lang=lang=="de"?"de-DE":"en-GB";u.onend=done;u.onerror=done;speechSynthesis.speak(u)}catch(e){done()}
+ };
+ window.scrollTo(0,0);
+}
+function route(){var m=location.hash.match(/^#\/station\/(\d+)/);chrome();m?station(m[1]):overview()}
+window.addEventListener("hashchange",route);route();
+</script>
+</body>
+</html>
