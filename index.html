@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Audio-Guide Agnes Bernauer · Straubing</title>
 <style>
-:root{--bg:#f6f1e7;--card:#fffdf8;--ink:#2b2118;--mut:#6f6254;--acc:#8c2f39;--line:#d9cdb8;--water:#cfe0e6;
+:root{--bg:#fbf8f3;--card:#ffffff;--ink:#231f20;--mut:#6b5f5f;--acc:#b5121b;--line:#e6d9c4;--water:#cfe0e6;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1713;--card:#272019;--ink:#f1e8d9;--mut:#b3a38e;--acc:#e0707b;--line:#41372c;--water:#26363d}}
-:root[data-theme="dark"]{--bg:#1c1713;--card:#272019;--ink:#f1e8d9;--mut:#b3a38e;--acc:#e0707b;--line:#41372c;--water:#26363d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1516;--card:#2a1d1f;--ink:#f4ece8;--mut:#bda9a5;--acc:#e05a5f;--line:#4a3436;--water:#26363d}}
+:root[data-theme="dark"]{--bg:#1d1516;--card:#2a1d1f;--ink:#f4ece8;--mut:#bda9a5;--acc:#e05a5f;--line:#4a3436;--water:#26363d}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.6 Georgia,"Times New Roman",serif}
-.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:var(--bg);border-bottom:3px solid #c8a24a}
 .bar a{color:var(--acc);text-decoration:none;font:600 15px sans-serif;padding:8px 4px}
 .lang{display:flex;border:1px solid var(--acc);border-radius:999px;overflow:hidden}
 .lang button{all:unset;cursor:pointer;font:700 14px sans-serif;padding:8px 14px;color:var(--acc)}
@@ -33,7 +33,7 @@ svg{width:100%;height:auto;display:block;border-radius:12px;background:var(--bg)
 .list a:first-child{border-top:0}
 .badge{flex:none;width:38px;height:38px;border-radius:50%;background:var(--acc);color:#fff;font:700 16px sans-serif;display:grid;place-items:center}
 .list small{display:block;color:var(--mut);font-size:.85em}
-.hero{height:170px;border-radius:12px;background:linear-gradient(135deg,var(--acc),#c9a35b) center/cover;display:grid;place-items:center;color:#fff;font:600 14px sans-serif;margin-bottom:12px}
+.hero{height:170px;border-radius:12px;background:linear-gradient(135deg,var(--acc),#c8a24a) center/cover;display:grid;place-items:center;color:#fff;font:600 14px sans-serif;margin-bottom:12px}
 .play{display:flex;align-items:center;gap:12px}
 .play button{font:700 17px sans-serif;background:var(--acc);color:#fff;border:0;border-radius:999px;padding:14px 24px;cursor:pointer}
 .note{font:13px/1.4 sans-serif;color:var(--mut)}
@@ -43,7 +43,7 @@ svg{width:100%;height:auto;display:block;border-radius:12px;background:var(--bg)
 .prev{display:inline-block;margin-top:16px;color:var(--acc);text-decoration:none;font:600 15px sans-serif;padding:8px 0}
 #map{height:60vh;min-height:320px;border-radius:12px;z-index:0}
 .zoom{top:18px;right:18px;z-index:1000}
-.pin{position:relative;width:38px;height:38px;border-radius:50%;background:#8c2f39;color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);font:700 16px/32px sans-serif;text-align:center}
+.pin{position:relative;width:38px;height:38px;border-radius:50%;background:#b5121b;color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);font:700 16px/32px sans-serif;text-align:center}
 .plabel{position:absolute;left:44px;top:2px;white-space:nowrap;font:600 14px/1.3 sans-serif;color:#2b2118;background:rgba(255,253,248,.94);padding:2px 8px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);text-align:left}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
@@ -55,11 +55,14 @@ svg{width:100%;height:auto;display:block;border-radius:12px;background:var(--bg)
 <script>
 /* ===== KONFIGURATION ===== */
 /* Karte (OpenStreetMap): center = [Breite, Länge], zoom = Start-Zoom.
-   Stationen: lat/lng = Koordinaten. Auf openstreetmap.org: Rechtsklick auf den Ort -> Koordinaten/Adresse anzeigen.
-   ACHTUNG: Die Koordinaten unten sind nur grob geschätzt und müssen geprüft werden!
-   ROUTE (optional): Liste von [lat,lng]-Punkten, damit die Linie Straßen folgt; leer = Linie direkt durch alle Stationen. */
+   Stationen: lat/lng = Koordinaten (Rechtsklick auf openstreetmap.org zeigt sie an).
+   ROUTES: Liste von GeoJSON-Features (je ein Wegabschnitt). Achtung, in GeoJSON steht die LÄNGE zuerst: [lng,lat].
+   Einfach das komplette {"type":"Feature",...} z. B. von geojson.io oder einem Routenplaner hier als weiteren Eintrag einfügen,
+   Einträge mit Komma trennen. Ist die Liste leer, wird eine gestrichelte Gerade zwischen den Stationen gezeichnet. */
 var MAP={center:[48.8835,12.5790],zoom:15};
-var ROUTE=[];
+var ROUTES=[
+{"type":"Feature","properties":{},"geometry":{"type":"LineString","coordinates":[[12.57312,48.88489],[12.57312,48.88483],[12.57312,48.88475],[12.57313,48.88458],[12.57318,48.88451],[12.57318,48.88451],[12.57299,48.88343],[12.57298,48.88339],[12.57294,48.88309],[12.57286,48.8827],[12.57283,48.88219],[12.57283,48.8821],[12.57283,48.8821],[12.57271,48.8821],[12.57271,48.8821],[12.57272,48.88196],[12.57273,48.88155],[12.57272,48.88128],[12.5727,48.88121],[12.57265,48.88116],[12.57265,48.88116],[12.57257,48.88115],[12.57197,48.881],[12.57178,48.88095],[12.57133,48.88088],[12.57087,48.88083],[12.57064,48.88079],[12.56991,48.88067],[12.56991,48.88067],[12.57003,48.88036],[12.57004,48.88033],[12.57008,48.88024],[12.57011,48.88019],[12.57011,48.88019]]}}
+];
 var LANGS=["de","en"];
 var UI={
  de:{title:"Auf den Spuren der Agnes Bernauer",sub:"Ein Audio-Rundgang durch Straubing",home:"← Übersicht",map:"Tippe auf einen Punkt, um die Station zu öffnen.",play:"▶ Anhören",stopb:"❚❚ Stopp",demo:"Demo-Stimme des Geräts (später: echte Aufnahme)",aud:"Audio-Datei",next:"Weiter zu Station",nextS:"Nächste Station",done:"Zur Übersicht",doneS:"Rundgang beendet",prev:"← Vorherige Station",photo:"Platz für Foto der Station",water:"Donau",foot:"Prototyp · Texte und Karte sind Platzhalter."},
@@ -99,7 +102,8 @@ function initMap(){
  map=L.map("map").setView(MAP.center,MAP.zoom);
  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-Mitwirkende'}).addTo(map);
  var pts=STATIONS.map(function(s){return [s.lat,s.lng]});
- L.polyline(ROUTE.length?ROUTE:pts,{color:"#8c2f39",weight:4,dashArray:"2 9",lineCap:"round"}).addTo(map);
+ if(ROUTES.length)ROUTES.forEach(function(r){L.geoJSON(r,{style:{color:"#b5121b",weight:5,opacity:.9,lineCap:"round",lineJoin:"round"}}).addTo(map)});
+ else L.polyline(pts,{color:"#b5121b",weight:4,dashArray:"2 9",lineCap:"round"}).addTo(map);
  STATIONS.forEach(function(s){
   L.marker([s.lat,s.lng],{icon:L.divIcon({className:"",html:'<div class="pin">'+s.id+'</div>',iconSize:[38,38],iconAnchor:[19,19]}),title:s[lang].title})
    .addTo(map).on("click",function(){location.hash="#/station/"+s.id});
