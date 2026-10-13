@@ -66,12 +66,15 @@ var UI={
  en:{title:"In the Footsteps of Agnes Bernauer",sub:"An audio walk through Straubing",home:"← Overview",map:"Tap a point to open the stop.",play:"▶ Listen",stopb:"❚❚ Stop",demo:"Device demo voice (later: real recording)",aud:"Audio file",next:"Continue to stop",nextS:"Next stop",done:"Back to overview",doneS:"Walk completed",prev:"← Previous stop",photo:"Space for station photo",water:"Danube",foot:"Prototype · texts and map are placeholders."}};
 /* Stationen: lat/lng = Position auf der Karte, audio = Dateiname pro Sprache (leer = Demo-Stimme), img = Foto (optional) */
 var STATIONS=[
-{id:1,lat:48.8836,lng:12.5775,img:"",
+{id:1,lat:48.885071,lng:12.572874,img:"",
  de:{title:"Das Herzogsschloss",sub:"Hier beginnt die Geschichte",audio:"",text:["Willkommen in Straubing. Hier, im Herzogsschloss, residierte im 15. Jahrhundert Herzog Ernst von Bayern-München.","Sein Sohn Albrecht verliebte sich in Agnes Bernauer, die Tochter eines Augsburger Baders. Die Verbindung galt als nicht standesgemäß und wurde zum politischen Konflikt.","Platzhaltertext: Hier folgt später der echte, historisch geprüfte Text."]},
  en:{title:"The Ducal Castle",sub:"Where the story begins",audio:"",text:["Welcome to Straubing. In the 15th century, Duke Ernst of Bavaria-Munich resided here in the ducal castle.","His son Albrecht fell in love with Agnes Bernauer, the daughter of an Augsburg bathhouse keeper. The union was seen as unsuitable and became a political conflict.","Placeholder text: the real, historically verified text will follow here."]}},
 {id:2,lat:48.8862,lng:12.5927,img:"",
  de:{title:"Die Agnes-Bernauer-Kapelle",sub:"Der Ort der Erinnerung",audio:"",text:["Im Jahr 1435 wurde Agnes Bernauer in der Donau ertränkt. Ihr Tod machte sie zur Legende.","Herzog Albrecht ließ später eine Kapelle stiften, die an sie erinnert. Bis heute lebt ihre Geschichte in Dichtung und Festspielen weiter.","Platzhaltertext: Hier folgt später der echte, historisch geprüfte Text."]},
  en:{title:"The Agnes Bernauer Chapel",sub:"A place of remembrance",audio:"",text:["In 1435, Agnes Bernauer was drowned in the Danube. Her death turned her into a legend.","Duke Albrecht later endowed a chapel in her memory. Her story lives on in literature and festivals to this day.","Placeholder text: the real, historically verified text will follow here."]}}
+{id:3,lat:48.881926,lng:12.568571,img:"",
+ de:{title:"Das Rathaus",sub:"Der Ort der Erinnerung",audio:"",text:["Im Jahr 1435 wurde Agnes Bernauer in der Donau ertränkt. Ihr Tod machte sie zur Legende.","Herzog Albrecht ließ später eine Kapelle stiften, die an sie erinnert. Bis heute lebt ihre Geschichte in Dichtung und Festspielen weiter.","Platzhaltertext: Hier folgt später der echte, historisch geprüfte Text."]},
+ en:{title:"The town hall",sub:"A place of remembrance",audio:"",text:["In 1435, Agnes Bernauer was drowned in the Danube. Her death turned her into a legend.","Duke Albrecht later endowed a chapel in her memory. Her story lives on in literature and festivals to this day.","Placeholder text: the real, historically verified text will follow here."]}}
 ];
 /* ===== ENDE KONFIGURATION ===== */
 
@@ -98,7 +101,7 @@ function initMap(){
  var pts=STATIONS.map(function(s){return [s.lat,s.lng]});
  L.polyline(ROUTE.length?ROUTE:pts,{color:"#8c2f39",weight:4,dashArray:"2 9",lineCap:"round"}).addTo(map);
  STATIONS.forEach(function(s){
-  L.marker([s.lat,s.lng],{icon:L.divIcon({className:"",html:'<div class="pin">'+s.id+'<span class="plabel">'+s[lang].title+'</span></div>',iconSize:[38,38],iconAnchor:[19,19]}),title:s[lang].title})
+  L.marker([s.lat,s.lng],{icon:L.divIcon({className:"",html:'<div class="pin">'+s.id+'</div>',iconSize:[38,38],iconAnchor:[19,19]}),title:s[lang].title})
    .addTo(map).on("click",function(){location.hash="#/station/"+s.id});
  });
  map.fitBounds(pts,{padding:[60,60],maxZoom:17});
